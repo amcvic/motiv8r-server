@@ -4,6 +4,10 @@ var sequelize = require('../db');
 var Meetup = sequelize.import('../models/meetup');
 
 router.post('/', function(req, res) {
+  //user will input date as '2019-08-21'
+  //and time as 13:45
+  //then must convert that to postgres timestamp
+  // '2019-08-21 13:45:00.00-04' 
   Meetup.create({
     date: req.body.date,
     locationX: req.body.locationX,
@@ -17,7 +21,7 @@ router.post('/', function(req, res) {
     function(data) {
       res.json({
         name: req.body.name,
-        id: id
+        id: data.id
       })
     },
     function(err) {
@@ -27,8 +31,10 @@ router.post('/', function(req, res) {
 });
 
 router.get('/', function(req, res) {
+  //maybe where locationX is within .1 and location y is within .1?
+  //Op.gte or lte
   Meetup
-    .findAll({where: {location: req.body.location}})
+    .findAll({where: {locationX: req.body.locationX, locationY: req.body.locationY}})
     .then(
       function(data) {
         res.json(data);

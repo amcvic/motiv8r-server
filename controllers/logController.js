@@ -10,7 +10,8 @@ router.post('/', function(req, res) {
       length: req.body.length,
       date: req.body.date,
       intensity: req.body.intensity,
-      review: req.body.review
+      review: req.body.review,
+      owner: req.user.id
     }).then(
       function(data) {
         res.json({
@@ -24,8 +25,13 @@ router.post('/', function(req, res) {
 });
 
 router.get('/', function(req, res) {
+  //date falls within range
+  //send date as just a month?
+  // {where: {date: {[sequelize.Op.lt]: 31, [Op.gt]: 01}}}
+  //not correct but something like that
+  let regex = new RegExp("/^.{5}" + req.body.month + "/", "g");
   Log
-    .findAll({where: {date: req.body.date}})
+    .findAll({where: {date: {[sequelize.Op.regexp]: regex}}})
     .then(
       function(data) {
         res.json(data);
@@ -36,7 +42,20 @@ router.get('/', function(req, res) {
     );
 });
 
-router.put('/', function(req, res) {
+router.get('/:id', function(req, res) {
+  Log
+    .findOne({where: {id: req.params.id}})
+    .then(
+      function(data) {
+        res.json(data);
+      },
+      function(err) {
+        res.send(500, err.message);
+      }
+    )
+});
+
+router.put('/:id', function(req, res) {
   Log
     .update({
       name: req.body.name,

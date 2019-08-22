@@ -6,13 +6,12 @@ var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
 router.post('/signup', function (req, res) {
-  
-  var username = req.body.user.username;
-  var pass = req.body.user.password;
 
   User.create({
-    username: username,
-    password: bcrypt.hashSync(pass, 10)
+    username: req.body.username,
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 10),
+    points: 0
   }).then(
     function createSuccess(user) {
       var token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60*60*24});
@@ -29,10 +28,10 @@ router.post('/signup', function (req, res) {
 });
 
 router.post('/login', function(req, res) {
-  User.findOne({where: {username: req.body.user.username}}).then(
+  User.findOne({where: {[sequelize.Op.or]: [{username: req.body.username}, {email: req.body.username}]}}).then(
     function(user) {
       if (user) {
-        bcrypt.compare(req.body.user.password, user.password, function (err, matches) {
+        bcrypt.compare(req.body.password, user.password, function (err, matches) {
           if (matches) {
             var token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60*60*24});
             res.json({
@@ -54,8 +53,8 @@ router.post('/login', function(req, res) {
   );
 });
 
-router.get('/get/:id', function(req, res) {
-  User.findOne({where: {userid: req.params.id}}).then(
+router.get('/:id', function(req, res) {
+  User.findOne({where: {id: req.params.id}}).then(
     function(user) {
       if (user) {
         res.json({
@@ -66,23 +65,20 @@ router.get('/get/:id', function(req, res) {
       }
     },
     function (err) {
-      res.status(501).send({error: 'uesr not found'});
+      res.status(501).send({error: 'user not found'});
     }
   );
 });
 
 router.put('/addPoint/:id', function(req,res) {
-  User.update({
-    points: points + req.body.points
-  }, {where: {userid: req.params.id}}).then(
+  User.increment([
+    'points'
+  ], {by: req.body.points, where: {id: req.params.id}}).then(
     function(data) {
-      res.json({
-        user: user,
-        points: points
-      });
+      res.json(data);
     }, 
     function(err) {
-      res.status(500).send({error: 'user not found'});
+      res.status(500).send({error: 'points not incremented'});
     }
   );
 });
