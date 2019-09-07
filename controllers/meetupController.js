@@ -30,11 +30,17 @@ router.post('/', function(req, res) {
   );
 });
 
-router.get('/', function(req, res) {
-  //maybe where locationX is within .1 and location y is within .1?
-  //Op.gte or lte
+router.post('/getall', function(req, res) {
+  //gets all meetups within ~6.9 miles from current location
   Meetup
-    .findAll({where: {locationX: req.body.locationX, locationY: req.body.locationY}})
+    .findAll({where: 
+      {
+        locationX: {[sequelize.Op.lte]: req.body.locationX+.01}, 
+        locationX: {[sequelize.Op.gte]: req.body.locationX-.01}, 
+        locationY: {[sequelize.Op.lte]: req.body.locationY+.01},
+        locationY: {[sequelize.Op.gte]: req.body.locationY-.01}
+      }
+    })
     .then(
       function(data) {
         res.json(data);

@@ -24,14 +24,14 @@ router.post('/', function(req, res) {
     );
 });
 
-router.get('/', function(req, res) {
+router.post('/getall', function(req, res) {
   //date falls within range
   //send date as just a month?
   // {where: {date: {[sequelize.Op.lt]: 31, [Op.gt]: 01}}}
   //not correct but something like that
-  let regex = new RegExp("/^.{5}" + req.body.month + "/", "g");
+  // let regex = new RegExp("/^.{5}" + req.body.month + "/", "g");
   Log
-    .findAll({where: {date: {[sequelize.Op.regexp]: regex}}})
+    .findAll({where: {date: {[sequelize.Op.gte]: req.body.minMonth, [sequelize.Op.lt]: req.body.maxMonth}}})
     .then(
       function(data) {
         res.json(data);
@@ -44,7 +44,7 @@ router.get('/', function(req, res) {
 
 router.get('/:id', function(req, res) {
   Log
-    .findOne({where: {id: req.params.id}})
+    .findOne({where: {id: req.params.id, owner: req.user.id}})
     .then(
       function(data) {
         res.json(data);
@@ -83,7 +83,7 @@ router.put('/:id', function(req, res) {
 
 router.delete('/:id', function(req, res) {
   Log
-    .destroy({where: {id: req.params.id}})
+    .destroy({where: {id: req.params.id, owner: req.user.id}})
     .then(
       function(data) {
         res.send('you removed', req.params.id, 'log');
