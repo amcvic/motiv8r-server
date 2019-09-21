@@ -70,6 +70,32 @@ router.get('/:id', function(req, res) {
   );
 });
 
+router.delete('/:id', function(req, res) {
+  User.destroy({
+    where: {id: req.params.id}
+  }).then(
+    () => {
+      res.json({
+        message: 'user with id ' + req.params.id + ' has been deleted'
+      });
+    },
+    (error) => {
+      res.status(500).send({error: 'error deleting '+error})
+    }
+  );
+})
+
+router.get('/', function(req, res) {
+  User.findAll().then(
+    function(users) {
+      res.json(users);
+    },
+    function (err) {
+      res.status(500).send({error: 'no users!'});
+    }
+  );
+});
+
 router.put('/addPoint/:id', function(req,res) {
   User.increment([
     'points'
